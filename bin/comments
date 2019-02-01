@@ -6,14 +6,12 @@ import fileinput
 from comment_filter import language
 import comment_filter
 import argparse
-from comment_filter import _version
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--onlycode', help='filter out comments', action='store_true')
     parser.add_argument('--notokens', help='filter out comment tokens', action='store_true')
-    parser.add_argument('--version', action='version', version=_version.__version__)
     parser.add_argument('path', help='path to file to parse')
     args = parser.parse_args()
 

@@ -157,27 +157,25 @@ def parse_code(lang, state):
     while True:
         line = state.line
         multi_start_tokens = [start for start, end in lang.comment_bookends]
-        tokens = multi_start_tokens + [
-            lang.line_comment,
-            lang.string_literal_start,
-            lang.string_literal2_start]
+        tokens = multi_start_tokens + lang.string_literals
+
+        if lang.line_comment:
+            tokens += [lang.line_comment]
+
         i = index_of_first_found(line, tokens)
         if i != -1:
             state.line = line[i:]
             code += line[:i]
-            if line.startswith(lang.line_comment, i) or \
-                    index_of_first_found(line, multi_start_tokens) == i:
+            if lang.line_comment and line.startswith(lang.line_comment, i):
                 return code, state
-            elif line.startswith(lang.string_literal_start, i):
-                lit, state = parse_string_literal(
-                    lang.string_literal_start, state)
-                code += lit
-                continue
-            else:
-                lit, state = parse_string_literal(
-                    lang.string_literal2_start, state)
-                code += lit
-                continue
+            elif index_of_first_found(line, multi_start_tokens) == i:
+                return code, state
+
+            for item in lang.string_literals:
+                if line.startswith(item):
+                    lit, state = parse_string_literal(item, state)
+                    code += lit
+                    break
         else:
             state.line = ''
             return code + line, state
@@ -272,7 +270,7 @@ def parse_line_comment(lang, state, keep_tokens=True):
     """
     line = state.line
     line_comment = lang.line_comment
-    if line.startswith(line_comment):
+    if line_comment and line.startswith(line_comment):
         state.line = ''
         i = len(line_comment)
         if not keep_tokens:
